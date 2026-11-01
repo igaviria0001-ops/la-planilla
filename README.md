@@ -20,7 +20,7 @@ App de fans para votar batallas de freestyle como un juez. Le dices qué batalla
 
 ## Instalarla
 
-Abre la app desde GitHub Pages y toca **Instalar app** en el inicio.
+Abre **https://igaviria0001-ops.github.io/la-planilla/** y toca **Instalar app** en el inicio.
 
 - **Android / Chrome / Edge**: aparece el aviso de instalación del navegador.
 - **iPhone / iPad**: en Safari, toca **Compartir** y luego **Agregar a pantalla de inicio**.
