@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "La Planilla · Vota batallas de freestyle",
+  "short_name": "La Planilla",
+  "description": "App de fans para votar batallas de freestyle con el formato real de cada competencia: FMS actual, FMS clásico, Cerapios o voto directo.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0b0b",
+  "theme_color": "#0b0b0b",
+  "categories": ["entertainment", "music"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Votar una batalla", "short_name": "Votar", "url": "./?abrir=votar", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Aprender a votar", "short_name": "Aprender", "url": "./?abrir=aprender", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
