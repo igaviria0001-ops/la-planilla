@@ -786,6 +786,14 @@ span.ib{background:none;border:0}
 .isteps li>span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--acc);color:var(--on-acc);font:900 18px var(--f-disp)}
 @media (max-width:420px){.brand:has(.instb) .tagsub{display:none}}
 .ii{display:inline-grid;vertical-align:-4px}.ii svg{width:18px;height:18px}
+/* quién abre */
+.opener .odot{width:10px;height:10px;border-radius:50%;background:var(--mc);box-shadow:0 0 8px var(--mc)}
+.opener .osw{display:inline-flex;align-items:center;gap:4px;margin-left:4px;padding-left:8px;border-left:1px solid var(--line2);color:var(--mut);font-weight:700}
+.opener .osw svg{width:14px;height:14px}
+.opener:disabled{opacity:1}
+.abre{display:inline-block;margin-right:6px;padding:2px 6px;border-radius:99px;background:var(--mc);color:var(--on-mc);font:800 9.5px var(--f-body);letter-spacing:.08em;text-transform:uppercase;vertical-align:3px}
+.topen{display:inline-block!important;margin-top:3px;font-size:11px!important;font-weight:800;color:var(--mc)!important}
+.stps{display:grid;gap:6px;justify-items:end}
 </style>
 </head>
 <body>
@@ -877,6 +885,12 @@ const COMPS=[
         {n:'Deluxe',est:'deluxe',cap:2,q:6,info:'2 entradas a capela por MC + 6 intervenciones con base'}],
     rep:R4(6,'4x4 · 120 s',{seg:120}),maxRep:1,
     nota:'También es el formato de los duelos Vida o Muerte. El 8x8 de 120 s del Random Mode es la duración publicada por FMS Colombia 2026/27 y World Series 2025.',src:['reg','form','col']},
+   {id:'lg_col25',grupo:'Temporadas anteriores',nombre:'FMS Colombia 2025/26',corto:'Temporada 4 · Deluxe con 3 entradas a capela',
+    bl:[{n:'Random Mode',est:'x8',q:3,seg:120,unk:true,info:'8x8 · temáticas, personajes contrapuestos, easy, hard, imágenes u objetos · duración no publicada (por defecto 120 s)',rand:RAND_ACT},
+        MIN('Minuto ida','60 s libres por MC, respondidos de seguido'),MIN('Minuto vuelta','Igual que el de ida, a la inversa'),
+        {n:'Deluxe',est:'deluxe',cap:3,q:6,unk:true,info:'3 entradas a capela por MC + 4x4 con base · lo con base no está publicado (por defecto 6 intervenciones)'}],
+    rep:R4(6,'4x4 · 120 s',{seg:120}),maxRep:1,
+    nota:'Las 3 entradas a capela por MC son las que se vieron en las batallas de la temporada 4 de FMS Colombia; no encontramos ese formato escrito, y el reglamento de 2025-2026 habla de 2. Si en una batalla cambia, ajústalo aquí.',src:['reg']},
    {id:'lg_col',grupo:'Variantes publicadas',nombre:'FMS Colombia 2026/27',corto:'Igual, con Deluxe de 100 s',
     bl:[{n:'Random Mode',est:'x8',q:3,seg:120,info:'8x8 · 120 s · temáticas, personajes contrapuestos, easy, hard, imágenes u objetos',rand:RAND_ACT},
         MIN('Minuto de ida','60 s continuos por MC'),MIN('Minuto de vuelta','60 s continuos por MC'),
@@ -889,7 +903,7 @@ const COMPS=[
    {id:'ws25',grupo:'Temporada 2025',nombre:'FMS World Series 2025',corto:'12x12 · Random 8x8 · Minutos A-B-B-A · Deluxe',
     bl:[{n:'12x12',est:'x12',q:2,info:'2 intervenciones por MC'},
         {n:'Random Mode',est:'x8',q:3,seg:120,info:'8x8 · 120 s',rand:RAND_ACT},
-        {n:'Minutos libres',est:'tiempo',q:120,seg:60,resp:true,info:'Orden A-B-B-A · 60 s cada minuto'},
+        {n:'Minutos libres',est:'tiempo',q:120,seg:60,resp:true,abba:true,info:'Orden A-B-B-A · 60 s cada minuto'},
         {n:'Deluxe',est:'deluxe',cap:3,q:6,seg:120,info:'3 intervenciones a capela + 120 s de 4x4'}],
     rep:R4(6,'4x4 · duración no publicada (por defecto 120 s, como en las ligas)',{seg:120,unk:true}),maxRep:1,
     nota:'World Series vota con el sistema de las ligas: 0–10 por ronda, a capela 0–4 y una única réplica 4x4.',src:['ws25','ws24','reg']}
@@ -1050,7 +1064,7 @@ function autoInfo(b){
   }
 }
 function mk(b,extra){
-  return Object.assign({est:b.est,n:b.n,info:b.info||autoInfo(b),pat:patsOf(b),seg:segOf(b),words:b.estim||null,unk:!!b.unk,
+  return Object.assign({est:b.est,abba:!!b.abba,n:b.n,info:b.info||autoInfo(b),pat:patsOf(b),seg:segOf(b),words:b.estim||null,unk:!!b.unk,
     split:b.est==='deluxe'?(+b.cap||0):0,ext:b.ext!==false,resp:!!b.resp,max:+b.max||10,rand:b.rand||null},extra||{});
 }
 /* Tabla de márgenes de réplica del reglamento FRF (12.12) según patrones por MC */
@@ -1061,13 +1075,13 @@ function autoMargen(f){return f.mgPat!=null?f.mgPat:frfMargen(totPatsOf(f))}
 function compile(f,vsId,o,cid){
   const V=VS[vsId],C=compById(cid)||{};o=Object.assign(defaultsOf(f),o||{});
   const sis=V.sis,rub=V.rub||'fms';const bloques=[];
-  f.bl.forEach(b=>{
+  f.bl.forEach((b,ri)=>{
     if(sis==='ronda'&&b.est==='deluxe'){
-      bloques.push(mk(b,{n:b.n+' · a capela',max:4,seg:null,info:(b.cap||0)+' entradas a capela por MC · se puntúan en conjunto de 0 a 4'}));
-      bloques.push(mk(b,{n:b.n+' · con base',max:10,info:b.seg?b.seg+' s con base en 4x4':(b.q+' intervenciones con base por MC')}));
-    } else bloques.push(mk(b));
+      bloques.push(mk(b,{ri,n:b.n+' · a capela',max:4,seg:null,info:(b.cap||0)+' entradas a capela por MC · se puntúan en conjunto de 0 a 4'}));
+      bloques.push(mk(b,{ri,n:b.n+' · con base',max:10,info:b.seg?b.seg+' s con base en 4x4':(b.q+' intervenciones con base por MC')}));
+    } else bloques.push(mk(b,{ri}));
   });
-  const rep=f.rep&&o.maxRep!==0?{n:f.rep.n||'Réplica',info:f.rep.info||autoInfo(f.rep),libre:sis!=='patron',bloques:[mk(f.rep)]}:null;
+  const rep=f.rep&&o.maxRep!==0?{n:f.rep.n||'Réplica',info:f.rep.info||autoInfo(f.rep),libre:sis!=='patron',bloques:[mk(f.rep,{ri:0})]}:null;
   const totPat=bloques.reduce((s,b)=>s+b.pat,0),repPat=rep?rep.bloques.reduce((s,b)=>s+b.pat,0):0;
   return {vs:vsId,theme:V.theme,sis,rub,comp:cid,compNombre:C.nombre||'',nombre:f.nombre,bloques,rep,
     margen:sis==='patron'?(o.margen!=null?o.margen:autoMargen(f)):0,margenAuto:o.margen==null,margenRep:frfMargen(repPat),
@@ -1563,7 +1577,8 @@ const WZ={
   {g:'20/21',l:'2020/21',s:'Llega el Random Mode',res:['hist','cl_2021','Temporada 2020/21: margen de 5 por juez.']},
   {g:'17–20',l:'2017 a 2020',s:'Las seis rondas clásicas',res:['hist','cl_1720','El formato clásico de 49 patrones: margen de 5 por juez.']}]},
  ligapais:{q:'¿Qué liga?',leg:1,o:[
-  {g:'COL',c:'lcol',l:'FMS Colombia',s:'Deluxe con base de 100 s',res:['liga','lg_col','Formato de FMS Colombia 2026/27.']},
+  {g:'COL',c:'lcol',l:'FMS Colombia 2026/27',s:'Temporada 5 · Deluxe: 2 a capela + 100 s con base',res:['liga','lg_col','Formato de FMS Colombia 2026/27.']},
+  {g:'25/26',c:'lcol',l:'FMS Colombia 2025/26',s:'Temporada 4 · Deluxe con 3 entradas a capela',res:['liga','lg_col25','Formato de la temporada 4 de FMS Colombia.']},
   {g:'FMS',c:'fms',l:'Otra liga',s:'España, Argentina, México, Chile, Perú… y Vida o Muerte',res:['liga','lg_regl','Formato del reglamento FMS 2026/27.']}]},
  liga23:{q:'¿Qué parte de la temporada?',o:[
   {g:'J',l:'Jornada de liga',res:['hist','cl_23l','Liga 2023: margen de 1,5 por juez.']},
@@ -1646,7 +1661,8 @@ function vWiz(){
   return topBar('Encontrar formato','',`Paso ${z.st.length}`)+`<div class="pg wiz"><div class="wprog" aria-hidden="true"><i style="width:${pct}%"></i></div>${body}</div>`;
 }
 function timeline(f){
-  return `<ol class="tl">${f.bl.map((b,i)=>`<li><span class="tn">${i+1}</span><div><b>${esc(b.n)}</b><span>${esc(b.info||autoInfo(b))}</span>${b.unk?'<span class="unk">Dato no publicado</span>':''}</div></li>`).join('')}
+  const F=S.first||'A',nm=m=>(m==='A'?S.a:S.b).trim()||'MC '+m;
+  return `<ol class="tl">${f.bl.map((b,i)=>`<li><span class="tn">${i+1}</span><div><b>${esc(b.n)}</b><span>${esc(b.info||autoInfo(b))}</span><span class="topen" data-m="${i%2?other(F):F}">Abre ${esc(nm(i%2?other(F):F))}</span>${b.unk?'<span class="unk">Dato no publicado</span>':''}</div></li>`).join('')}
   ${f.rep?`<li class="rep"><span class="tn">R</span><div><b>${esc(f.rep.n||'Réplica')}</b><span>${esc(f.rep.info||autoInfo(f.rep))}${f.maxRep===1?' · una sola':f.maxRep===0?'':''}</span></div></li>`:'<li class="rep"><span class="tn">–</span><div><b>Sin réplica</b></div></li>'}</ol>`;
 }
 
@@ -1662,6 +1678,7 @@ function navHTML(){
 }
 function srcList(ks){ks=(ks||[]).filter(k=>SRC[k]);return ks.length?`<div class="srcs"><span class="eyebrow">Fuentes</span>${ks.map(k=>`<a href="${SRC[k].u}" target="_blank" rel="noopener">${esc(SRC[k].t)}</a>`).join('')}</div>`:''}
 function mcFields(){return `<div class="mcs"><label class="mcin" data-m="A"><span class="tagm">A</span><input id="inA" data-in="a" value="${esc(S.a)}" placeholder="MC A" autocomplete="off" aria-label="Nombre del MC A"></label><span class="vsb">VS</span><label class="mcin" data-m="B"><span class="tagm">B</span><input id="inB" data-in="b" value="${esc(S.b)}" placeholder="MC B" autocomplete="off" aria-label="Nombre del MC B"></label></div>
+  <div class="field"><label>¿Quién abre la batalla?</label><div class="seg" role="group" aria-label="Quién abre la batalla">${MCS.map(m=>`<button data-a="setfirst" data-v="${m}" aria-pressed="${(S.first||'A')===m}"><span data-nm="${m}">${esc((m==='A'?S.a:S.b).trim()||'MC '+m)}</span></button>`).join('')}</div><span class="hint">Abre la ronda 1 y luego se alternan ronda a ronda. En cada ronda puedes cambiar quién abre.</span></div>
   <div class="seg" role="group" aria-label="Jueces">${[1,3,5].map(n=>`<button data-a="nj" data-v="${n}" aria-pressed="${S.nj===n}">${n===1?'Solo yo':n+' jueces'}</button>`).join('')}</div>
   <p class="hint">${S.nj===1?'Votas tú: tu voto es el veredicto.':'Cada juez llena su planilla. Gana quien tenga '+(Math.floor(S.nj/2)+1)+' votos.'}</p>`}
 function sheetHTML(inner,label){return `<div class="shbg" data-a="shclose"></div><div class="shp" role="dialog" aria-modal="true" aria-label="${esc(label||'Guía')}"><span class="grab" aria-hidden="true"></span><button class="ib shx" data-a="shclose" aria-label="Cerrar">${IC.x}</button>${inner}</div>`}
@@ -1758,7 +1775,7 @@ function roundRow(b,i,cfg){
       <button class="flag" data-a="rup" data-b="${i}">↑ Subir</button><button class="flag" data-a="rdown" data-b="${i}">↓ Bajar</button><button class="flag del" data-a="rdel" data-b="${i}">Quitar</button></div>`:''}
     <span class="hint">1 patrón = 4 barras ≈ 10 s. Un 4x4 cuenta 1 patrón por entrada, un 8x8 dos y un 12x12 tres.</span></div>`;
   return `<div class="rr"><span class="rn">${i==='rep'?'R':i+1}</span><div class="rt2"><b>${esc(b.n)}</b><span>${esc(b.info||autoInfo(b))}</span>${b.unk?'<span class="unk">Dato no publicado</span>':''}${cfg.sis==='patron'?`<span class="pc2">${patsOf(b)} patrones</span>`:''}</div>
-    <div class="stp"><button data-a="rq" data-b="${id}" data-v="${-step}" aria-label="Menos">−</button><output>${b.q||0}<small>${qLabel(b)}</small></output><button data-a="rq" data-b="${id}" data-v="${step}" aria-label="Más">+</button></div>
+    <div class="stps">${b.est==='deluxe'?`<div class="stp"><button data-a="rcap" data-b="${id}" data-v="-1" aria-label="Menos entradas a capela">−</button><output>${b.cap||0}<small>a capela</small></output><button data-a="rcap" data-b="${id}" data-v="1" aria-label="Más entradas a capela">+</button></div>`:''}<div class="stp"><button data-a="rq" data-b="${id}" data-v="${-step}" aria-label="Menos">−</button><output>${b.q||0}<small>${qLabel(b)}</small></output><button data-a="rq" data-b="${id}" data-v="${step}" aria-label="Más">+</button></div></div>
     <button class="dots" data-a="red" data-b="${id}" aria-expanded="${open}" aria-label="Editar ronda">⋯</button>${ed}</div>`;
 }
 function swH(key,on,title,sub){return `<div class="optrow"><div><b>${title}</b>${sub?`<span>${sub}</span>`:''}</div><button class="sw" data-a="opt" data-k="${key}" aria-pressed="${!!on}" aria-label="${esc(title)}"></button></div>`}
@@ -1817,18 +1834,23 @@ function orderOf(b,first){
   else if(b.est==='x4'||b.est==='x2')alt(0,p,1);
   else if(b.est==='x8')alt(0,p,2);
   else if(b.est==='x12')alt(0,p,3);
+  else if(b.abba){const h=Math.ceil(p/2);[[F,0,h],[X,0,h],[X,h,p],[F,h,p]].forEach(([m,a,z])=>{for(let j=a;j<z;j++)o.push([m,j])})}
   else [F,X].forEach(m=>{for(let j=0;j<p;j++)o.push([m,j])});
   return o;
 }
-function curPos(bt,v,j,i,b){const u=U(bt),key=j+'_'+bt.cur+'_'+i,sh=v.sh[j];const ord=orderOf(b,u.first[bt.cur+'_'+i]);let pos=u.fp[key];
+/* quién abre: el que elegiste abre la ronda 1 y se alterna ronda a ronda; el Deluxe a capela y con base son la misma ronda */
+const other=m=>m==='A'?'B':'A';
+function fkey(bt,b,i){return bt.cur+'_r'+(b.ri!=null?b.ri:i)}
+function firstOf(bt,b,i){const o=U(bt).first[fkey(bt,b,i)];if(o)return o;const f=bt.first||'A';return (b.ri!=null?b.ri:i)%2?other(f):f}
+function curPos(bt,v,j,i,b){const u=U(bt),key=j+'_'+bt.cur+'_'+i,sh=v.sh[j];const ord=orderOf(b,firstOf(bt,b,i));let pos=u.fp[key];
   if(pos==null||pos>ord.length){pos=ord.findIndex(([m,k])=>sh.s[m][i][k]==null);if(pos<0)pos=ord.length}return {ord,pos,key}}
 function roundDone(v,j,i){const sh=v.sh[j];
   if(v.tipo==='patron')return MCS.every(m=>sh.s[m][i].every(x=>x!=null));
   if(v.tipo==='ronda')return MCS.every(m=>sh.s[m][i]!=null);
   if(v.tipo==='voto')return !!sh.h[i];return true}
-function rhead(bt,v,b,i,ro,pat){const first=U(bt).first[bt.cur+'_'+i]||'A';
+function rhead(bt,v,b,i,ro,pat){const first=firstOf(bt,b,i);
   return `<div class="rh"><span class="rnum">${v.kind==='rep'?'R':i+1}</span><div class="rhn"><h2>${esc(b.n)}</h2><p>${esc(b.info)}</p>${b.unk?'<span class="unk">Dato no publicado: ajústalo si cambia</span>':''}</div></div>
-  <div class="rha">${b.rand?`<button class="chipbtn" data-a="draw" data-v="${i}">${IC.dice}${v.sort[i]?esc(v.sort[i]):'Sortear modo'}</button>`:''}${b.seg?`<button class="chipbtn" data-a="timer" data-v="${i}">${IC.timer}${b.seg} s</button>`:''}${pat&&!ro?`<button class="chipbtn" data-a="first" data-v="${i}">${IC.swap}Empieza ${esc(nmOf(bt,first))}</button>`:''}</div>`}
+  <div class="rha">${b.rand?`<button class="chipbtn" data-a="draw" data-v="${i}">${IC.dice}${v.sort[i]?esc(v.sort[i]):'Sortear modo'}</button>`:''}${b.seg?`<button class="chipbtn" data-a="timer" data-v="${i}">${IC.timer}${b.seg} s</button>`:''}${v.tipo!=='libre'?`<button class="chipbtn opener" data-m="${first}" data-a="first" data-v="${i}" ${ro?'disabled':''}><i class="odot"></i>Abre ${esc(nmOf(bt,first))}${ro?'':`<span class="osw">${IC.swap}Cambiar</span>`}</button>`:''}</div>`}
 const LBL={fms:['Muy mal','Mejorable','Bien','Muy bien','Excelente'],cerapios:['Relleno','Algo suma','Bien','Muy bien','Excelente']};
 const half=v=>{const t=String(fmtN(v));return t==='0,5'?'½':t.replace(',5','½')};
 function lastBar(bt,v,j,b,i){
@@ -1855,8 +1877,9 @@ function roundPatron(bt,v,j,b,i,ro){
 }
 function roundRonda(bt,v,j,b,i,ro){
   const sh=v.sh[j],u=U(bt),pk=bt.cur+'_'+j+'_'+i;const gh=b.max===4?2:5;
+  const fst=firstOf(bt,b,i);
   const ctr=m=>{const val=sh.s[m][i],pen=sh.p[m][i]||0;const shown=val==null?gh:Math.max(0,val-pen);
-    return `<div class="ctr" data-m="${m}"><span class="cn">${esc(nmOf(bt,m))}</span>
+    return `<div class="ctr" data-m="${m}"><span class="cn">${m===fst?'<i class="abre">Abre</i>':''}${esc(nmOf(bt,m))}</span>
     <button class="dial ${val==null?'gh':''}" style="--p:${val==null?0:shown/b.max}" data-a="rset" data-m="${m}" data-b="${i}" ${ro?'disabled':''} aria-label="Nota de ${esc(nmOf(bt,m))}: ${val==null?'sin fijar':shown}"><b>${shown}</b><small>${val==null?'toca para fijar':pen?'falta −'+pen:'de '+b.max}</small></button>
     <div class="pm"><button data-a="rstep" data-m="${m}" data-b="${i}" data-v="-1" ${ro?'disabled':''} aria-label="Bajar nota de ${esc(nmOf(bt,m))}">−</button><button data-a="rstep" data-m="${m}" data-b="${i}" data-v="1" ${ro?'disabled':''} aria-label="Subir nota de ${esc(nmOf(bt,m))}">+</button></div></div>`};
   const pen=u.pen[pk]?`<div class="penb">${MCS.map(m=>`<div class="penr"><span>${esc(nmOf(bt,m))}</span>${[1,2,3,4].map(n=>`<button class="sc pen" data-a="rp" data-m="${m}" data-b="${i}" data-v="${n}" ${(sh.p[m][i]||0)===n?'data-on="x"':''} ${ro?'disabled':''}>−${n}</button>`).join('')}</div>`).join('')}<p class="hint">Grado 1 (−1 o −2): pisar el patrón o hablar en el turno del rival. Grado 2 (−3 o −4): contacto físico intencional o reincidir.</p></div>`:'';
@@ -2016,7 +2039,7 @@ const toastEl=document.getElementById('toast');let toastT=null;
 function toast(m){toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove('on'),2200)}
 function startBattle(cfg){
   const a=(S.a||'').trim()||'MC A',b=(S.b||'').trim()||'MC B';
-  const bt={id:Date.now(),fecha:new Date().toISOString(),cfg,a,b,nj:S.nj,jn:Array.from({length:S.nj},(_,k)=>'Juez '+(k+1)),vot:[],cur:0,cj:0,fin:null,ui:{ri:0,fp:{},last:null,pen:{},first:{}}};
+  const bt={id:Date.now(),fecha:new Date().toISOString(),cfg,a,b,first:S.first||'A',nj:S.nj,jn:Array.from({length:S.nj},(_,k)=>'Juez '+(k+1)),vot:[],cur:0,cj:0,fin:null,ui:{ri:0,fp:{},last:null,pen:{},first:{}}};
   bt.vot.push(newVot(bt,'main'));S.bt=bt;S.dqOpen=false;go('vote');
 }
 function curSheet(){const bt=S.bt;return bt.vot[bt.cur].sh[bt.cj]}
@@ -2072,6 +2095,7 @@ document.addEventListener('click',e=>{
     /* preparar */
     case 'vs':S.vs=v;S.opt.margen=null;break;
     case 'nj':S.nj=+v;break;
+    case 'setfirst':S.first=v;break;
     case 'opt':S.opt[el.dataset.k]=!S.opt[el.dataset.k];break;
     case 'mg':{const cur=compile(S.wf,S.vs,S.opt,S.comp).margen;S.opt.margen=Math.max(0,Math.round((cur+ +v)*10)/10);break}
     case 'mgauto':S.opt.margen=null;break;
@@ -2098,7 +2122,8 @@ document.addEventListener('click',e=>{
       for(let s=1;s<=ord.length;s++){const p=(pos+s)%ord.length,[mm,kk]=ord[p];if(sh.s[mm][bi][kk]==null){nx=p;break}}
       u.fp[key]=nx<0?ord.length:nx;break}
     case 'pf':{const vv=bt.vot[bt.cur],j=bt.cj,b=blocksOf(bt.cfg,vv.kind)[bi];const {ord,key}=curPos(bt,vv,j,bi,b);const m=el.dataset.m,k=+el.dataset.k;U(bt).fp[key]=ord.findIndex(x=>x[0]===m&&x[1]===k);break}
-    case 'first':{const u=U(bt),fk=bt.cur+'_'+bi;u.first[fk]=(u.first[fk]||'A')==='A'?'B':'A';Object.keys(u.fp).forEach(k=>{if(k.endsWith('_'+fk))delete u.fp[k]});break}
+    case 'first':{const fi=+v,u=U(bt),bl=blocksOf(bt.cfg,bt.vot[bt.cur].kind),b0=bl[fi];if(!b0)break;const fk=fkey(bt,b0,fi);u.first[fk]=other(firstOf(bt,b0,fi));
+      bl.forEach((b,i)=>{if(fkey(bt,b,i)===fk)Object.keys(u.fp).forEach(k=>{if(k.endsWith('_'+bt.cur+'_'+i))delete u.fp[k]})});toast('Abre '+nmOf(bt,u.first[fk]));break}
     case 'half':{const L=U(bt).last;if(!L)break;const sh=bt.vot[L.vi].sh[L.j];const c=sh.s[L.m][L.i][L.k];if(c==null)break;sh.s[L.m][L.i][L.k]=c%1?c-.5:Math.min(4,c+.5);break}
     case 'resp1':{const L=U(bt).last;if(!L)break;const sh=bt.vot[L.vi].sh[L.j];sh.r[L.m][L.i][L.k]=!sh.r[L.m][L.i][L.k];break}
     case 'px':{const sh=curSheet(),m=el.dataset.m,f=el.dataset.f,n=+v;sh.x[m][bi][f]=sh.x[m][bi][f]===n?null:n;break}
@@ -2121,7 +2146,7 @@ document.addEventListener('click',e=>{
     /* resultado y batallas */
     case 'copy':{const txt=summaryText(S.res);const box=document.getElementById('copybox');const fb=()=>{box.focus();box.select();toast('Selecciona el texto y cópialo')};
       try{navigator.clipboard.writeText(txt).then(()=>toast('Resumen copiado'),fb)}catch(err){fb()}return}
-    case 'again':{const r=S.res;S.a=r.a;S.b=r.b;S.nj=r.nj;startBattle(clone(r.cfg));break}
+    case 'again':{const r=S.res;S.a=r.a;S.b=r.b;S.nj=r.nj;S.first=r.first||'A';startBattle(clone(r.cfg));break}
     case 'htab':S.htab=v;break;
     case 'hopen':S.res=hist()[+v];go('result');break;
     case 'hdel':{const i=+v;if(S.del===i){const H=hist();H.splice(i,1);LS.set('lp.hist3',H);S.del=null;toast('Batalla borrada')}else S.del=i;break}
@@ -2137,7 +2162,7 @@ document.addEventListener('input',e=>{
   const el=e.target;
   if(el.dataset.in==='q'){S.q=el.value;render();return}
   if(el.dataset.in==='fname'){if(S.wf)S.wf.nombre=el.value;save();return}
-  if(el.dataset.in){S[el.dataset.in]=el.value;save()}
+  if(el.dataset.in){S[el.dataset.in]=el.value;save();if(el.dataset.in==='a'||el.dataset.in==='b'){const m=el.dataset.in.toUpperCase();document.querySelectorAll('[data-nm="'+m+'"]').forEach(x=>x.textContent=el.value.trim()||'MC '+m)}}
   if(el.dataset.rn!=null&&S.wf){const b=rb(el.dataset.rn);if(b){b.n=el.value;save()}}
 });
 document.addEventListener('change',e=>{

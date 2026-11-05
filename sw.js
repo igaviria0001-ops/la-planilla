@@ -1,5 +1,5 @@
 /* La Planilla · service worker: la app abre sin conexión y se actualiza sola cuando hay internet */
-const VERSION = 'lp-2026-11-01';
+const VERSION = 'lp-2026-11-04';
 const FONTS = 'lp-fonts';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 
